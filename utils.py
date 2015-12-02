@@ -399,10 +399,11 @@ def is_space_enough(path, needs, space_to_keep):
     return avail > (space_to_keep + needs)
 
 
-def _build_binds(data_dir, log_dir):
+def _build_binds(data_dir, log_dir, backup_dir):
     src_dst = []
     src_dst.append((data_dir, '/mongodb/data'))
     src_dst.append((log_dir, '/mongodb/logs'))
+    src_dst.append((backup_dir, backup_dir))
     binds = {}
     for src, dst in src_dst:
         binds[src] = {
@@ -433,7 +434,7 @@ def is_container_running(container, base_url='unix://var/run/docker.sock'):
             raise
 
 
-def run_instance_deploy(docker_image, farm, port, data_dir, log_dir, key, **options):
+def run_instance_deploy(docker_image, farm, port, data_dir, log_dir, backup_dir, key, **options):
     logger = logging.getLogger(__name__)
     try:
         maxConns = options.pop('maxConns')
@@ -449,7 +450,7 @@ def run_instance_deploy(docker_image, farm, port, data_dir, log_dir, key, **opti
         '--set', 'replSet={}'.format(farm),
     ]
 
-    binds = _build_binds(data_dir, log_dir)
+    binds = _build_binds(data_dir, log_dir, backup_dir)
 
     client = get_client(base_url='unix://var/run/docker.sock')
     name = 'mongodb-{}'.format(farm)
